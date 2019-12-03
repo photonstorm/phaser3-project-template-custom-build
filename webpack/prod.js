@@ -1,0 +1,67 @@
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
+
+module.exports = {
+    mode: 'production',
+    devtool: false,
+    output: {
+        filename: 'bundle.min.js'
+    },
+    performance: {
+        maxEntrypointSize: 900000,
+        maxAssetSize: 900000
+    },
+    optimization: {
+        minimizer: [
+            new TerserPlugin({
+                terserOptions: {
+                    output: {
+                        comments: false
+                    }
+                }
+            })
+        ]
+    },
+    module: {
+        rules: [
+            {
+                test: /\.js$/,
+                exclude: /node_modules/,
+                use: {
+                    loader: 'babel-loader'
+                }
+            },
+            {
+                test: [/\.vert$/, /\.frag$/],
+                use: 'raw-loader'
+            },
+            {
+                test: /\.(gif|png|jpe?g|svg|xml)$/i,
+                use: 'file-loader'
+            }
+        ]
+    },
+    plugins: [
+        new CleanWebpackPlugin({
+            root: path.resolve(__dirname, '../')
+        }),
+        new CopyPlugin([
+            { from: 'src/assets', to: 'assets' },
+        ]),
+        new webpack.DefinePlugin({
+            "typeof CANVAS_RENDERER": JSON.stringify(true),
+            "typeof WEBGL_RENDERER": JSON.stringify(true),
+            "typeof EXPERIMENTAL": JSON.stringify(false),
+            "typeof PLUGIN_CAMERA3D": JSON.stringify(false),
+            "typeof PLUGIN_FBINSTANT": JSON.stringify(false),
+            "typeof FEATURE_SOUND": JSON.stringify(true)
+        }),
+        new HtmlWebpackPlugin({
+            template: './index.html'
+        })
+    ]
+};
